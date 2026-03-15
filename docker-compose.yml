@@ -1,0 +1,49 @@
+
+services:
+
+  # ─────────────────────────────────────────────
+  # PostgreSQL - mock source transactional system
+  # ─────────────────────────────────────────────
+  postgres:
+    image: postgres:15
+    container_name: olist_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────
+  # Python ingestion container
+  # ─────────────────────────────────────────────
+  ingestion:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: olist_ingestion
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      DATA_DIR: /app/data/raw
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+    command: python src/ingest.py
+
+volumes:
+  postgres_data:
