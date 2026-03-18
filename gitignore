@@ -1,0 +1,24 @@
+# Environment variables - never commit credentials
+.env
+
+# Raw data files - too large for Git
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# dbt (added later in Phase 4)
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
