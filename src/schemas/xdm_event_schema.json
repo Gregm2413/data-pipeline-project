@@ -1,0 +1,38 @@
+{
+  "_id": "uuid4",
+  "timestamp": "ISO 8601 UTC",
+  "eventType": "web.webpagedetails.pageViews | commerce.productViews | commerce.productListAdds | commerce.productListRemovals | commerce.purchases",
+  "identityMap": {
+    "customerId": [{"id": "customer_unique_id", "primary": true}]
+  },
+  "environment": {
+    "type": "browser | application",
+    "operatingSystem": "Windows | iOS | Android",
+    "deviceCategory": "desktop | tablet | mobile"
+  },
+  "web": {
+    "webSession": {"ID": "session_id"},
+    "webPageDetails": {"name": "string", "URL": "string"},
+    "webReferrer": {"URL": "string", "type": "internal | external | direct"}
+  },
+  "productListItems": [
+    {
+      "SKU": "product_id",
+      "name": "product_category",
+      "priceTotal": 0.00,
+      "quantity": 1
+    }
+  ],
+  "commerce": {
+    "productViews": {"value": 1},
+    "productListAdds": {"value": 1},
+    "productListRemovals": {"value": 1},
+    "purchases": {"value": 1},
+    "order": {
+      "purchaseID": "order_id",
+      "priceTotal": 0.00,
+      "currencyCode": "BRL",
+      "payments": [{"paymentType": "string"}]
+    }
+  }
+}
