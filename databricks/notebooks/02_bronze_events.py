@@ -97,6 +97,7 @@ df = (
     .format("cloudFiles")
     .option("cloudFiles.format", "json")
     .option("cloudFiles.schemaLocation", CHECKPOINT_PATH)
+    .option("multiLine", "true")
     .schema(event_schema)
     .load(VOLUME_PATH)
 )

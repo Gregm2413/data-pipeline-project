@@ -24,6 +24,8 @@ services:
       dockerfile: docker/Dockerfile
     container_name: olist_ingest
     env_file: .env
+    volumes:
+      - ./data:/app/data
     depends_on:
       postgres:
         condition: service_healthy
