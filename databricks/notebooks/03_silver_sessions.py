@@ -59,51 +59,26 @@ from pyspark.sql.types import BooleanType
 
 flat_events = events_raw.select(
 
-    # --- Core identifiers ---
     col("_id").alias("event_id"),
     to_timestamp(col("timestamp")).alias("event_timestamp"),
     col("eventType").alias("event_type"),
 
-    # Session identity — adjust path if needed
-    coalesce(
-        col("session.sessionId"),
-        col("sessionId")
-    ).alias("session_id"),
+    col("web.webSession.ID").alias("session_id"),
 
-    # Customer identity — XDM identityMap pattern
-    # identityMap is typically map<string, array<struct>>
-    coalesce(
-        col("identityMap.customerId").getItem(0)["id"],
-        col("customerId")
-    ).alias("customer_id"),
+    col("identityMap")["customerId"].getItem(0)["id"].alias("customer_id"),
 
-    # --- Commerce event flags (XDM commerce object) ---
     when(col("eventType") == "commerce.productViews", 1).otherwise(0).alias("is_product_view"),
     when(col("eventType") == "commerce.productListAdds", 1).otherwise(0).alias("is_add_to_cart"),
     when(col("eventType") == "commerce.purchases", 1).otherwise(0).alias("is_purchase"),
     when(col("eventType") == "commerce.productListRemovals", 1).otherwise(0).alias("is_remove_from_cart"),
     when(col("eventType") == "web.webpagedetails.pageViews", 1).otherwise(0).alias("is_page_view"),
 
-    # --- Product context ---
-    coalesce(
-        col("productListItems").getItem(0)["SKU"],
-        col("productListItems").getItem(0)["productId"]
-    ).alias("product_id"),
+    get(col("productListItems"), 0)["SKU"].alias("product_id"),
+    get(col("productListItems"), 0)["priceTotal"].cast("double").alias("product_price"),
+    get(col("productListItems"), 0)["name"].alias("product_name"),
 
-    coalesce(
-        col("productListItems").getItem(0)["priceTotal"],
-        col("productListItems").getItem(0)["price"]
-    ).cast("double").alias("product_price"),
+    col("web.webPageDetails.URL").alias("page_url"),
 
-    col("productListItems").getItem(0)["name"].alias("product_name"),
-
-    # --- Web context ---
-    coalesce(
-        col("web.webPageDetails.URL"),
-        col("web.webpagedetails.URL")
-    ).alias("page_url"),
-
-    # --- Lineage ---
     col("_ingested_at"),
     col("_source_file")
 )
@@ -303,7 +278,13 @@ print("✅ olist.silver.session_events written")
 # MAGIC     ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 2) AS pct_of_sessions
 # MAGIC FROM olist.silver.sessions
 # MAGIC GROUP BY funnel_stage_name
-# MAGIC ORDER BY max_funnel_stage_reached DESC;
+# MAGIC ORDER BY CASE funnel_stage_name
+# MAGIC     WHEN 'purchase'     THEN 4
+# MAGIC     WHEN 'add_to_cart'  THEN 3
+# MAGIC     WHEN 'product_view' THEN 2
+# MAGIC     WHEN 'page_view'    THEN 1
+# MAGIC     ELSE 0
+# MAGIC END DESC;
 
 # COMMAND ----------
 

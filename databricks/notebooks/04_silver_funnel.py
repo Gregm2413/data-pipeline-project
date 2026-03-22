@@ -298,15 +298,12 @@ print("✅ olist.silver.funnel_daily written")
 # MAGIC %sql
 # MAGIC -- Average time between funnel steps for converting sessions
 # MAGIC SELECT
-# MAGIC     avg_sec_page_to_product_view,
-# MAGIC     avg_sec_product_view_to_add,
-# MAGIC     avg_sec_add_to_purchase,
-# MAGIC     avg_sec_full_journey,
-# MAGIC     median_sec_full_journey,
-# MAGIC     p90_sec_full_journey,
-# MAGIC     converting_sessions_with_timestamps
-# MAGIC FROM olist.silver.funnel_step_times
-# MAGIC LIMIT 1;
+# MAGIC     ROUND(AVG(seconds_page_to_product_view), 1)  AS avg_sec_page_to_product_view,
+# MAGIC     ROUND(AVG(seconds_product_view_to_add), 1)   AS avg_sec_product_view_to_add,
+# MAGIC     ROUND(AVG(seconds_add_to_purchase), 1)        AS avg_sec_add_to_purchase,
+# MAGIC     ROUND(AVG(seconds_page_view_to_purchase), 1)  AS avg_sec_full_journey,
+# MAGIC     COUNT(ts_purchase)                            AS converting_sessions_with_timestamps
+# MAGIC FROM olist.silver.funnel_step_times;
 
 # COMMAND ----------
 
