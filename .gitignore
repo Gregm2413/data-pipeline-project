@@ -21,4 +21,4 @@ Thumbs.db
 # dbt (added later in Phase 4)
 dbt/target/
 dbt/dbt_packages/
-dbt/logs/
+dbt/logs/logs/

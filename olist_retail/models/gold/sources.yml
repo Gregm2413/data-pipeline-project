@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: silver
+    catalog: olist
+    schema: silver
+    tables:
+      - name: customer_journeys
+      - name: sessions
+      - name: funnel_daily
+      - name: funnel_metrics
+      - name: funnel_step_times
+      - name: session_events
+      - name: customer_journey_sessions

@@ -1,0 +1,97 @@
+version: 2
+
+models:
+  - name: gold_customer_segments
+    description: >
+      RFM-style customer segmentation built on behavioral event data.
+      Assigns each customer a segment label (Champion, Loyal, New Customer,
+      At Risk, High Intent, Browser, Cold) based on purchase history,
+      conversion rates, and funnel depth. Designed for marketing and ML consumption.
+    columns:
+      - name: customer_id
+        description: Unique customer identifier
+        tests:
+          - not_null
+          - unique
+      - name: customer_segment
+        description: Behavioral segment label assigned by business logic
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Champion', 'Loyal', 'New Customer', 'At Risk', 'High Intent', 'Browser', 'Cold']
+      - name: total_revenue
+        description: Total behavioral revenue attributed to this customer
+        tests:
+          - not_null
+      - name: ever_converted
+        description: Whether the customer has ever completed a purchase
+        tests:
+          - not_null
+
+  - name: gold_funnel_performance
+    description: >
+      Weekly and monthly funnel rollups showing session volume, product views,
+      cart additions, and purchases over time. Used for trend analysis and
+      conversion rate monitoring at the period level.
+    columns:
+      - name: period_start
+        description: Start date of the aggregation period (week or month)
+        tests:
+          - not_null
+      - name: period_type
+        description: Granularity of the period - either week or month
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['week', 'month']
+      - name: total_sessions
+        description: Total number of sessions in the period
+        tests:
+          - not_null
+      - name: period_conversion_rate_pct
+        description: Purchases divided by total sessions as a percentage
+
+  - name: gold_product_engagement
+    description: >
+      Product-level engagement metrics showing how customers interact with
+      each product across sessions. Includes view rates, cart add rates,
+      and purchase rates per product. Useful for merchandising and search ranking.
+    columns:
+      - name: product_id
+        description: Unique product identifier
+        tests:
+          - not_null
+          - unique
+      - name: total_sessions
+        description: Number of sessions that interacted with this product
+        tests:
+          - not_null
+      - name: cart_rate_pct
+        description: Percentage of product view sessions that added to cart
+      - name: purchase_rate_pct
+        description: Percentage of product view sessions that converted
+
+  - name: gold_executive_summary
+    description: >
+      Daily executive KPI table combining funnel metrics with customer-level
+      aggregates. Each row represents one day with top-line metrics suitable
+      for dashboard consumption. Customer stats are repeated across all dates
+      as a snapshot of the current state.
+    columns:
+      - name: session_date
+        description: The date of the session activity
+        tests:
+          - not_null
+          - unique
+      - name: total_sessions
+        description: Total sessions on this date
+        tests:
+          - not_null
+      - name: daily_conversion_rate_pct
+        description: Conversion rate for this specific date
+      - name: total_revenue
+        description: Total behavioral revenue across all customers
+        tests:
+          - not_null
