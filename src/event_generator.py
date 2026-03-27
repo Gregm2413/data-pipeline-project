@@ -1,12 +1,13 @@
 import json
-import uuid
+import os
 import random
 import time
-from datetime import datetime, timezone
-from kafka import KafkaProducer
+import uuid
+from datetime import UTC, datetime
+
 import psycopg2
-import os
 from dotenv import load_dotenv
+from kafka import KafkaProducer
 
 load_dotenv()
 
@@ -50,7 +51,7 @@ REFERRERS = ["https://google.com", "https://instagram.com", "direct", "https://e
 def make_envelope(event_type, customer_id, session_id, platform, device):
     return {
         "_id": str(uuid.uuid4()),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "eventType": event_type,
         "identityMap": {
             "customerId": [{"id": customer_id, "primary": True}]

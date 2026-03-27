@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Job 1: Python linting ──────────────────────────────────────────────────
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff
+        run: ruff check src/ tests/
+
+  # ── Job 2: Python unit tests ───────────────────────────────────────────────
+  test:
+    name: Unit Tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pytest pytest-cov
+          pip install -r src/requirements.txt
+
+      - name: Run unit tests
+        run: pytest tests/ -v --cov=src --cov-report=term-missing
+
+  # ── Job 3: dbt compile + docs (no live Databricks connection needed) ───────
+  dbt-validate:
+    name: dbt Compile & Docs
+    runs-on: ubuntu-latest
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_HTTP_PATH: ${{ secrets.DATABRICKS_HTTP_PATH }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dbt-databricks
+        run: pip install dbt-databricks
+
+      - name: dbt deps
+        working-directory: olist_retail
+        run: dbt deps
+
+      - name: Create dbt profiles.yml from secrets
+        working-directory: olist_retail
+        run: |
+          cat > profiles.yml << EOF
+          olist_retail:
+            target: dev
+            outputs:
+              dev:
+                type: databricks
+                host: ${{ secrets.DATABRICKS_HOST }}
+                http_path: ${{ secrets.DATABRICKS_HTTP_PATH }}
+                token: ${{ secrets.DATABRICKS_TOKEN }}
+                catalog: olist
+                schema: olist_gold
+                threads: 1
+          EOF
+
+      - name: dbt compile (syntax + model graph validation)
+        working-directory: olist_retail
+        run: dbt compile --profiles-dir .
+
+      - name: dbt docs generate (manifest only — no catalog introspection)
+        working-directory: olist_retail
+        run: dbt docs generate --profiles-dir . --no-compile
+        continue-on-error: true
+
+      - name: Upload dbt docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-docs
+          path: olist_retail/target/
+          retention-days: 14

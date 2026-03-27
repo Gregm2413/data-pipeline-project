@@ -1,7 +1,8 @@
 import json
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from kafka import KafkaConsumer
 
 # --- Config ---
@@ -24,7 +25,7 @@ consumer = KafkaConsumer(
 
 def write_batch(batch):
     """Write a batch of events to a JSON file."""
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
+    timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
     filename = f"{OUTPUT_DIR}/events_{timestamp}_{uuid.uuid4().hex[:8]}.json"
     with open(filename, "w") as f:
         json.dump(batch, f, indent=2)
