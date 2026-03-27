@@ -44,14 +44,14 @@ class TestXdmSchema:
         required_keys = {"_id", "timestamp", "eventType", "identityMap"}
         assert required_keys.issubset(schema.keys()), (
             f"Schema missing keys: {required_keys - schema.keys()}"
-    )
+        )
 
-def test_schema_event_type_field_exists(self):
-    with open("src/schemas/xdm_event_schema.json") as f:
-        schema = json.load(f)
-    assert "eventType" in schema, (
-        "XDM schema must define an 'eventType' field"
-    )
+    def test_schema_event_type_field_exists(self):
+        with open("src/schemas/xdm_event_schema.json") as f:
+            schema = json.load(f)
+        assert "eventType" in schema, (
+            "XDM schema must define an 'eventType' field"
+        )
 
 
 # ---------------------------------------------------------------------------
