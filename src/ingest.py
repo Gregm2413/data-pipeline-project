@@ -17,13 +17,12 @@ Olist dataset download:
 """
 
 import os
+from datetime import UTC, datetime
 from pathlib import Path
-from datetime import datetime, timezone
 
 import pandas as pd
-from sqlalchemy import create_engine, text
 from loguru import logger
-
+from sqlalchemy import create_engine, text
 
 # ─────────────────────────────────────────────
 # Config - read from environment variables
@@ -86,7 +85,7 @@ def load_csv_to_postgres(engine, csv_path: Path, table_name: str) -> None:
     row_count = len(df)
 
     # Add ingestion metadata columns - critical for lineage
-    df["_ingested_at"] = datetime.now(timezone.utc).isoformat()
+    df["_ingested_at"] = datetime.now(UTC).isoformat()
     df["_source_file"] = csv_path.name
 
     df.to_sql(

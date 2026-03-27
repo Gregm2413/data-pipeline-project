@@ -6,13 +6,10 @@ without a running Kafka broker. All Kafka I/O is mocked.
 """
 
 import json
-import os
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

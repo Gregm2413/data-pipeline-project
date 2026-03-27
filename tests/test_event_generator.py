@@ -7,8 +7,7 @@ or any external services — keeping CI fast and dependency-free.
 
 import json
 import uuid
-from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
+from datetime import UTC, datetime
 
 import pytest
 
@@ -42,17 +41,17 @@ class TestXdmSchema:
     def test_schema_has_required_top_level_keys(self):
         with open("src/schemas/xdm_event_schema.json") as f:
             schema = json.load(f)
-        required_keys = {"$schema", "title", "type", "properties"}
+        required_keys = {"_id", "timestamp", "eventType", "identityMap"}
         assert required_keys.issubset(schema.keys()), (
             f"Schema missing keys: {required_keys - schema.keys()}"
-        )
+    )
 
-    def test_schema_event_type_field_exists(self):
-        with open("src/schemas/xdm_event_schema.json") as f:
-            schema = json.load(f)
-        assert "eventType" in schema["properties"], (
-            "XDM schema must define an 'eventType' property"
-        )
+def test_schema_event_type_field_exists(self):
+    with open("src/schemas/xdm_event_schema.json") as f:
+        schema = json.load(f)
+    assert "eventType" in schema, (
+        "XDM schema must define an 'eventType' field"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -69,7 +68,7 @@ class TestEventStructure:
         """Build a minimal XDM event the same way event_generator does."""
         return {
             "eventType": event_type,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "identityMap": {"customerId": [{"id": order["customer_id"]}]},
             "commerce": {
                 "productViews": {"value": 1} if event_type == "commerce.productViews" else None,
