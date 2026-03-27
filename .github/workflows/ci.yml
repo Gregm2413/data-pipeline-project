@@ -48,8 +48,6 @@ jobs:
     name: dbt Compile & Docs
     runs-on: ubuntu-latest
     env:
-      # Stored as GitHub repository secrets:
-      #   Settings → Secrets and variables → Actions → New repository secret
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
       DATABRICKS_HTTP_PATH: ${{ secrets.DATABRICKS_HTTP_PATH }}
@@ -68,18 +66,30 @@ jobs:
         working-directory: olist_retail
         run: dbt deps
 
+      - name: Create dbt profiles.yml from secrets    # ← NEW STEP
+        working-directory: olist_retail
+        run: |
+          cat > profiles.yml << EOF
+          olist_retail:
+            target: dev
+            outputs:
+              dev:
+                type: databricks
+                host: ${{ secrets.DATABRICKS_HOST }}
+                http_path: ${{ secrets.DATABRICKS_HTTP_PATH }}
+                token: ${{ secrets.DATABRICKS_TOKEN }}
+                schema: olist_gold
+                threads: 1
+          EOF
+
       - name: dbt compile (syntax + model graph validation)
         working-directory: olist_retail
         run: dbt compile --profiles-dir .
-        # compile parses all SQL/YAML and resolves refs — no live DB needed
 
       - name: dbt docs generate (manifest only — no catalog introspection)
         working-directory: olist_retail
         run: dbt docs generate --profiles-dir . --no-compile
-        # --no-compile reuses the manifest from the compile step above.
-        # catalog.json (schema introspection) is skipped because the cluster
-        # may be stopped. The docs site still renders with model/column docs.
-        continue-on-error: true  # don't fail PR if cluster happens to be off
+        continue-on-error: true
 
       - name: Upload dbt docs artifact
         uses: actions/upload-artifact@v4
